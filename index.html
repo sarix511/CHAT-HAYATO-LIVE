@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAYATO CHAT - Secure Support Terminal</title>
+    <meta name="description" content="HAYATO CHAT - Secure customer support chat terminal with real-time messaging and expert technical assistance.">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        :root {
+            --matrix-green: #00ff00;
+            --bright-green: #00ff9d;
+            --terminal-bg: #0d0d0d;
+            --surface-dark: #121212;
+            --lime-green: #32ff32;
+            --chat-green: #00dd00;
+            --dark-green: #004400;
+        }
+
+        body {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            background-color: var(--terminal-bg);
+            color: var(--chat-green);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, rgba(0, 255, 0, 0.02) 0%, transparent 70%);
+        }
+
+        .matrix-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 255, 0, 0.03) 2px,
+                    rgba(0, 255, 0, 0.03) 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 255, 0, 0.03) 2px,
+                    rgba(0, 255, 0, 0.03) 4px
+                );
+            animation: matrix-scan 3s linear infinite;
+        }
+
+        @keyframes matrix-scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        .terminal-window {
+            border: 2px solid var(--matrix-green);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+            background: var(--surface-dark);
+            border-radius: 8px;
+        }
+
+        .vip-badge {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: black;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            animation: vip-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes vip-glow {
+            from { box-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700; }
+            to { box-shadow: 0 0 20px #FFD700, 0 0 30px #FFD700; }
+        }
+
+        .message-bubble {
+            border-left: 3px solid var(--matrix-green);
+            background: rgba(0, 255, 0, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        .admin-message {
+            border-left: 3px solid #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        .form-input {
+            background: var(--terminal-bg);
+            border: 1px solid var(--dark-green);
+            color: var(--matrix-green);
+            padding: 8px 12px;
+            border-radius: 4px;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--bright-green);
+            box-shadow: 0 0 0 2px rgba(0, 255, 157, 0.2);
+        }
+
+        .btn {
+            background: var(--surface-dark);
+            border: 2px solid var(--matrix-green);
+            color: var(--matrix-green);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--matrix-green);
+            color: var(--terminal-bg);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .space-x-2 > * + * {
+            margin-left: 8px;
+        }
+
+        .space-x-4 > * + * {
+            margin-left: 16px;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 16px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .h-screen {
+            height: 100vh;
+        }
+
+        .p-4 {
+            padding: 16px;
+        }
+
+        .p-8 {
+            padding: 32px;
+        }
+
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+
+        .relative {
+            position: relative;
+        }
+
+        .z-10 {
+            z-index: 10;
+        }
+
+        .overflow-y-auto {
+            overflow-y: auto;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: var(--terminal-bg);
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: var(--dark-green);
+            border-radius: 4px;
+        }
+
+        .tab {
+            background: var(--terminal-bg);
+            border: 1px solid var(--dark-green);
+            color: var(--matrix-green);
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .tab.active {
+            background: var(--matrix-green);
+            color: var(--terminal-bg);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--lime-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .typing-indicator {
+            opacity: 0.7;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="matrix-bg"></div>
+    
+    <!-- Auth Page -->
+    <div id="authPage" class="h-screen flex">
+        <div class="w-full md:w-1/2 flex items-center justify-center p-8">
+            <div class="w-full max-w-md">
+                <div class="text-center mb-4">
+                    <h1 style="font-size: 2.5rem; font-weight: bold; color: var(--matrix-green); margin-bottom: 8px;">HAYATO CHAT</h1>
+                    <p style="color: var(--bright-green);">SECURE TERMINAL ACCESS</p>
+                    <div class="flex justify-center" style="margin-top: 16px;">
+                        <div style="width: 64px; height: 1px; background: var(--matrix-green);"></div>
+                    </div>
+                </div>
+
+                <div class="terminal-window p-4">
+                    <h2 style="color: var(--matrix-green); font-size: 1.2rem; margin-bottom: 8px;">ACCESS CONTROL</h2>
+                    <p style="color: var(--bright-green); margin-bottom: 16px; font-size: 0.9rem;">
+                        Authenticate to join the secure communication channel
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <div class="flex">
+                            <button class="tab active" id="loginTab" onclick="switchTab('login')">LOGIN</button>
+                            <button class="tab" id="registerTab" onclick="switchTab('register')">REGISTER</button>
+                        </div>
+                        
+                        <!-- Login Form -->
+                        <form id="loginForm" class="space-y-4" onsubmit="handleLogin(event)">
+                            <div>
+                                <label style="color: var(--bright-green); font-size: 0.9rem;">&gt; USERNAME:</label>
+                                <input type="text" id="loginUsername" class="form-input" placeholder="Enter username..." required>
+                            </div>
+                            <div>
+                                <label style="color: var(--bright-green); font-size: 0.9rem;">&gt; PASSWORD:</label>
+                                <input type="password" id="loginPassword" class="form-input" placeholder="Enter password..." required>
+                            </div>
+                            <button type="submit" class="btn w-full" id="loginBtn">ACCESS GRANTED &gt;</button>
+                        </form>
+                        
+                        <!-- Register Form -->
+                        <form id="registerForm" class="space-y-4 hidden" onsubmit="handleRegister(event)">
+                            <div>
+                                <label style="color: var(--bright-green); font-size: 0.9rem;">&gt; NEW USERNAME:</label>
+                                <input type="text" id="registerUsername" class="form-input" placeholder="Choose username..." required>
+                            </div>
+                            <div>
+                                <label style="color: var(--bright-green); font-size: 0.9rem;">&gt; NEW PASSWORD:</label>
+                                <input type="password" id="registerPassword" class="form-input" placeholder="Create password..." required>
+                            </div>
+                            <button type="submit" class="btn w-full" id="registerBtn">CREATE ACCOUNT &gt;</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hidden md:flex md:w-1/2 items-center justify-center p-8">
+            <div class="text-center space-y-8">
+                <div class="space-y-4">
+                    <div style="font-size: 4rem; color: var(--matrix-green); margin: 0 auto 24px;">⚡</div>
+                    <h2 style="font-size: 2rem; font-weight: bold; color: var(--matrix-green);">SECURE COMMUNICATIONS</h2>
+                    <p style="color: var(--bright-green); font-size: 1.1rem;">
+                        Join the encrypted customer support terminal
+                    </p>
+                </div>
+                
+                <div class="space-y-6" style="text-align: left; max-width: 320px;">
+                    <div class="flex items-start space-x-4">
+                        <span style="color: var(--lime-green); font-size: 1.2rem;">🛡️</span>
+                        <div>
+                            <h3 style="color: var(--chat-green); font-weight: 600;">End-to-End Security</h3>
+                            <p style="color: var(--dark-green); font-size: 0.9rem;">All communications are encrypted and secure</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <span style="color: var(--lime-green); font-size: 1.2rem;">👥</span>
+                        <div>
+                            <h3 style="color: var(--chat-green); font-weight: 600;">Expert Support</h3>
+                            <p style="color: var(--dark-green); font-size: 0.9rem;">Connect with our technical support team</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <span style="color: var(--lime-green); font-size: 1.2rem;">💬</span>
+                        <div>
+                            <h3 style="color: var(--chat-green); font-weight: 600;">Real-time Chat</h3>
+                            <p style="color: var(--dark-green); font-size: 0.9rem;">Instant messaging with live support agents</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Page -->
+    <div id="chatPage" class="h-screen flex-col hidden">
+        <!-- Header -->
+        <header style="background: var(--surface-dark); border-bottom: 1px solid var(--matrix-green); padding: 16px;" class="relative z-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 style="font-size: 1.2rem; font-weight: bold; color: var(--matrix-green);">HAYATO CHAT</h1>
+                    <div style="font-size: 0.9rem; color: var(--bright-green);">
+                        &gt; SECURE_CHANNEL_ACTIVE
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="status-indicator"></div>
+                        <span id="connectionStatus" style="font-size: 0.8rem; color: var(--lime-green);">CONNECTED</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <span id="currentUser" style="font-size: 0.9rem; color: var(--chat-green);"></span>
+                        <span id="vipBadge" class="vip-badge hidden">👑 VIP</span>
+                    </div>
+                    <button onclick="logout()" class="btn" style="font-size: 0.8rem; padding: 4px 8px;">
+                        🚪 LOGOUT
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <div class="flex flex-col relative z-10" style="flex: 1;">
+            <!-- Messages Container -->
+            <div id="messagesContainer" class="overflow-y-auto scrollbar-thin p-4" style="flex: 1; max-height: calc(100vh - 200px);">
+                <!-- Messages will be inserted here -->
+            </div>
+
+            <!-- Message Input -->
+            <div style="background: var(--surface-dark); border-top: 1px solid var(--matrix-green); padding: 16px;">
+                <form onsubmit="sendMessage(event)" class="flex space-x-4">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        class="form-input" 
+                        placeholder="Type your message..." 
+                        maxlength="500" 
+                        style="flex: 1;"
+                    >
+                    <button type="submit" class="btn" id="sendBtn">
+                        📤 SEND
+                    </button>
+                </form>
+                <div style="margin-top: 8px; font-size: 0.8rem; color: var(--dark-green);">
+                    Press Enter to send • Max 500 characters • <span id="chatStatus">Live chat active</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let currentUser = null;
+        let socket = null;
+        let messages = [];
+        let isTyping = false;
+
+        // Simulate users database
+        const users = [
+            { id: 1, username: 'sarim', password: 'Hayato', displayName: 'HAYATO', isAdmin: true }
+        ];
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is already logged in
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showChatPage();
+            }
+        });
+
+        // Authentication Functions
+        function switchTab(tab) {
+            const loginTab = document.getElementById('loginTab');
+            const registerTab = document.getElementById('registerTab');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            } else {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            loginBtn.textContent = 'AUTHENTICATING...';
+            loginBtn.disabled = true;
+
+            // Simulate authentication delay
+            setTimeout(() => {
+                const user = users.find(u => u.username === username && u.password === password);
+                if (user) {
+                    currentUser = user;
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    showChatPage();
+                } else {
+                    alert('Invalid credentials! Try username: sarim, password: Hayato');
+                }
+                loginBtn.textContent = 'ACCESS GRANTED >';
+                loginBtn.disabled = false;
+            }, 1000);
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const password = document.getElementById('registerPassword').value;
+            const registerBtn = document.getElementById('registerBtn');
+
+            registerBtn.textContent = 'CREATING ACCOUNT...';
+            registerBtn.disabled = true;
+
+            // Simulate registration delay
+            setTimeout(() => {
+                // Check if username already exists
+                if (users.find(u => u.username === username)) {
+                    alert('Username already exists!');
+                } else {
+                    const newUser = {
+                        id: users.length + 1,
+                        username,
+                        password,
+                        displayName: username.toUpperCase(),
+                        isAdmin: false
+                    };
+                    users.push(newUser);
+                    currentUser = newUser;
+                    localStorage.setItem('currentUser', JSON.stringify(newUser));
+                    showChatPage();
+                }
+                registerBtn.textContent = 'CREATE ACCOUNT >';
+                registerBtn.disabled = false;
+            }, 1000);
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            if (socket) {
+                socket.close();
+                socket = null;
+            }
+            showAuthPage();
+        }
+
+        // Page Navigation
+        function showAuthPage() {
+            document.getElementById('authPage').classList.remove('hidden');
+            document.getElementById('chatPage').classList.add('hidden');
+            document.getElementById('chatPage').style.display = 'none';
+        }
+
+        function showChatPage() {
+            document.getElementById('authPage').classList.add('hidden');
+            document.getElementById('chatPage').classList.remove('hidden');
+            document.getElementById('chatPage').style.display = 'flex';
+            
+            // Update user info
+            document.getElementById('currentUser').textContent = currentUser.displayName;
+            if (currentUser.isAdmin) {
+                document.getElementById('vipBadge').classList.remove('hidden');
+            }
+            
+            // Initialize WebSocket and load messages
+            initializeChat();
+        }
+
+        // Chat Functions
+        function initializeChat() {
+            // Simulate WebSocket connection
+            simulateWebSocket();
+            
+            // Load initial messages
+            loadMessages();
+        }
+
+        function simulateWebSocket() {
+            // Simulate connection status
+            document.getElementById('connectionStatus').textContent = 'CONNECTED';
+            document.getElementById('chatStatus').textContent = 'Live chat active';
+            
+            // Simulate periodic messages from other users or admin
+            setInterval(() => {
+                if (Math.random() < 0.1) { // 10% chance every 5 seconds
+                    const supportMessages = [
+                        "Welcome to HAYATO CHAT support. How can I help you today?",
+                        "System status: All services operational",
+                        "Security scan complete. No threats detected.",
+                        "New update available. Please refresh your session.",
+                        "Thank you for using our secure chat service."
+                    ];
+                    
+                    if (currentUser && !currentUser.isAdmin) {
+                        addMessage({
+                            id: Date.now(),
+                            content: supportMessages[Math.floor(Math.random() * supportMessages.length)],
+                            user: { displayName: 'HAYATO', isAdmin: true },
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                }
+            }, 5000);
+        }
+
+        function loadMessages() {
+            // Load messages from localStorage or start with welcome message
+            const savedMessages = localStorage.getItem('chatMessages');
+            if (savedMessages) {
+                messages = JSON.parse(savedMessages);
+            } else {
+                messages = [
+                    {
+                        id: 1,
+                        content: "Welcome to HAYATO CHAT - Secure customer support terminal. How can we assist you today?",
+                        user: { displayName: 'SYSTEM', isAdmin: true },
+                        timestamp: new Date().toISOString()
+                    }
+                ];
+            }
+            
+            renderMessages();
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+            
+            messages.forEach(message => {
+                const messageElement = createMessageElement(message);
+                container.appendChild(messageElement);
+            });
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function createMessageElement(message) {
+            const div = document.createElement('div');
+            div.className = message.user.isAdmin ? 'admin-message' : 'message-bubble';
+            
+            const time = new Date(message.timestamp).toLocaleTimeString();
+            
+            div.innerHTML = `
+                <div class="flex justify-between" style="margin-bottom: 4px;">
+                    <div class="flex items-center space-x-2">
+                        <span style="font-size: 0.9rem; font-weight: 500; color: var(--bright-green);">
+                            ${message.user.displayName}
+                        </span>
+                        ${message.user.isAdmin ? '<span class="vip-badge">👑 VIP</span>' : ''}
+                    </div>
+                    <span style="font-size: 0.8rem; color: var(--dark-green);">
+                        ${time}
+                    </span>
+                </div>
+                <p style="color: var(--chat-green); word-wrap: break-word;">${message.content}</p>
+            `;
+            
+            return div;
+        }
+
+        function addMessage(message) {
+            messages.push(message);
+            localStorage.setItem('chatMessages', JSON.stringify(messages));
+            
+            const container = document.getElementById('messagesContainer');
+            const messageElement = createMessageElement(message);
+            container.appendChild(messageElement);
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            
+            if (content && currentUser) {
+                const message = {
+                    id: Date.now(),
+                    content: content,
+                    user: currentUser,
+                    timestamp: new Date().toISOString()
+                };
+                
+                addMessage(message);
+                input.value = '';
+                
+                // Simulate typing indicator for responses
+                if (!currentUser.isAdmin) {
+                    setTimeout(() => {
+                        const responses = [
+                            "Thank you for your message. A support agent will respond shortly.",
+                            "I understand your concern. Let me check that for you.",
+                            "Please provide more details about the issue you're experiencing.",
+                            "Your request has been logged. We'll get back to you soon.",
+                            "Is there anything else I can help you with today?"
+                        ];
+                        
+                        const response = {
+                            id: Date.now(),
+                            content: responses[Math.floor(Math.random() * responses.length)],
+                            user: { displayName: 'HAYATO', isAdmin: true },
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        addMessage(response);
+                    }, 1000 + Math.random() * 2000);
+                }
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                const messageInput = document.getElementById('messageInput');
+                if (document.activeElement === messageInput) {
+                    event.preventDefault();
+                    sendMessage(event);
+                }
+            }
+        });
+
+        // Show typing indicator
+        document.getElementById('messageInput').addEventListener('input', function() {
+            if (!isTyping) {
+                isTyping = true;
+                // Could show typing indicator here
+                
+                setTimeout(() => {
+                    isTyping = false;
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
